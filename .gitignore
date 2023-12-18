@@ -1,0 +1,7 @@
+__pycache__/
+DO File/
+doctr_github/
+vit-explain/
+*.png
+
+.DS_Store
