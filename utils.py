@@ -3,8 +3,11 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from typing import List
+import cv2
 import numpy as np
 import torch
+from doctr.io.elements import Word
 
 from doctr.models import ocr_predictor
 from doctr.models.predictor import OCRPredictor
@@ -30,6 +33,8 @@ def load_predictor(
     assume_straight_pages: bool,
     straighten_pages: bool,
     bin_thresh: float,
+    head_fusion: str,
+    discard_ratio: float,
     device: torch.device,
 ) -> OCRPredictor:
 
@@ -43,6 +48,8 @@ def load_predictor(
         detect_orientation=not assume_straight_pages,
     ).to(device)
     predictor.det_predictor.model.postprocessor.bin_thresh = bin_thresh
+    predictor.reco_predictor.head_fusion = head_fusion
+    predictor.reco_predictor.discard_ratio = discard_ratio
     return predictor
 
 
@@ -54,13 +61,30 @@ def forward_image(predictor: OCRPredictor, image: np.ndarray, device: torch.devi
         out = predictor.det_predictor.model(processed_batches[0].to(device), return_model_output=True)
         seg_map = out["out_map"].to("cpu").numpy()
 
-    # imgs = []
-    # masks = []
-    # preds = []
-    # for batch in processed_batches:
-    #     preds.extend(predictor.reco_predictor.model(batch, return_preds=True)["preds"])
-    #     masks.extend(VITAttentionRollout(self.model, "min")(batch))
-    #     imgs.extend(batch.detach().cpu().numpy().transpose(0, 2, 3, 1))
-    # assert len(preds) == len(masks) == len(imgs)
 
     return seg_map
+
+def word_to_image(word: Word, page: np.ndarray)-> np.ndarray:
+    x_min, y_min = word["geometry"][0]
+    x_max, y_max = word["geometry"][1]
+    x_min, y_min, x_max, y_max = int(x_min*page.shape[1]), int(y_min*page.shape[0]), int(x_max*page.shape[1]), int(y_max*page.shape[0])
+    image = page[y_min:y_max, x_min:x_max]
+
+    return image
+
+def attention_rollout_images(predictor: OCRPredictor, img: np.ndarray, device: torch.device, head_fusion="mean", discard_ratio=0.9):
+    image = np.array([img])
+    # Resize image
+    
+    image =  predictor.reco_predictor.pre_processor(image)[0]
+    image = image.to(device)
+    # image = torch.from_numpy(image).to(device)
+    predictor.reco_predictor.model = predictor.reco_predictor.model.to(device)
+
+    mask = VITAttentionRollout(predictor.reco_predictor.model, head_fusion, discard_ratio)(image)[0]
+
+    return mask
+    
+
+    
+

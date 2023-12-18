@@ -7,7 +7,7 @@ from doctr.io import DocumentFile
 from doctr.utils.visualization import visualize_page
 
 import torch
-from utils import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
+from utils import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor, word_to_image
 
 forward_device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
@@ -52,6 +52,11 @@ def main(det_archs, reco_archs):
     # Binarization threshold
     bin_thresh = st.sidebar.slider("Binarization threshold", min_value=0.1, max_value=0.9, value=0.3, step=0.1)
     st.sidebar.write("\n")
+    
+    st.sidebar.title("Explanation selection")
+    
+    discard_ratio = st.sidebar.slider("Dicard Ratio", min_value=0.0, max_value=0.9, value=0.9, step=0.1)
+    head_fusion = st.sidebar.selectbox("Head Fusion", ["min", "max", "mean"])
 
     if st.sidebar.button("Analyze page"):
         if uploaded_file is None:
@@ -60,7 +65,7 @@ def main(det_archs, reco_archs):
         else:
             with st.spinner("Loading model..."):
                 predictor = load_predictor(
-                    det_arch, reco_arch, True, False, bin_thresh, forward_device
+                    det_arch, reco_arch, True, False, bin_thresh, head_fusion, discard_ratio, forward_device
                 )
 
             with st.spinner("Analyzing..."):
@@ -126,6 +131,11 @@ def main(det_archs, reco_archs):
                 # sort by x1
                 for line in lines:
                     line.sort(key=lambda x: x["geometry"][0][0])
+
+                for line in lines:
+                    for word in line:
+                        image = word_to_image(word, page)
+                        word["image"] = image
                 
                 texts = []
                 for line in lines:
@@ -142,7 +152,7 @@ def main(det_archs, reco_archs):
                         last_word = word
                     texts.append(text)
                 result = "\n".join(texts)
-                ocr_cols[1].text_area("Aligned recognition result", value=result, height=650)
+                ocr_cols[1].code(result, language="text", line_numbers=True)
 
                 st.markdown("\n---\n")
                 st.markdown("## Attention Rollout Explanation")
@@ -163,16 +173,9 @@ def main(det_archs, reco_archs):
                     cam = cam / np.max(cam)
                     cam = np.uint8(255 * cam)
                     bottom_columns[0].image(image, clamp=True)
-                    bottom_columns[0].caption(row[0])
+                    bottom_columns[0].markdown(f'- {row[0]}')
                     bottom_columns[1].image(cam, clamp=True)
-                    bottom_columns[1].caption(row[1])
-                    
-
-                
-
-
-                        
-
+                    bottom_columns[1].markdown(f'- {row[1]:.2f}')
 
 if __name__ == "__main__":
     main(DET_ARCHS, RECO_ARCHS)

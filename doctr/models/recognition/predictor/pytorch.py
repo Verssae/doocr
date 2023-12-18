@@ -47,6 +47,8 @@ class RecognitionPredictor(nn.Module):
         self.critical_ar = 8  # Critical aspect ratio
         self.dil_factor = 1.4  # Dilation factor to overlap the crops
         self.target_ar = 6  # Target aspect ratio
+        self.head_fusion = "mean"
+        self.discard_ratio = 0.5
 
     @torch.inference_mode()
     def forward(
@@ -79,16 +81,14 @@ class RecognitionPredictor(nn.Module):
         self.model, processed_batches = set_device_and_dtype(
             self.model, processed_batches, _params.device, _params.dtype
         )
-
         imgs = []
         masks = []
         preds = []
         for batch in processed_batches:
             preds.extend(self.model(batch, return_preds=True, **kwargs)["preds"])
-            masks.extend(VITAttentionRollout(self.model, "min")(batch))
+            masks.extend(VITAttentionRollout(self.model, self.head_fusion, self.discard_ratio)(batch))
             imgs.extend(batch.detach().cpu().numpy().transpose(0, 2, 3, 1))
         assert len(preds) == len(masks) == len(imgs)
-        
         return preds, imgs, masks
   
         
