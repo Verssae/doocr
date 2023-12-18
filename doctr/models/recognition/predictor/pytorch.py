@@ -4,20 +4,15 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from typing import Any, List, Sequence, Tuple, Union
-import cv2
-from matplotlib import pyplot as plt
 
 import numpy as np
 import torch
 from torch import nn
 
-import seaborn as sns
-
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.utils import set_device_and_dtype
-from vit_explain import show_mask_on_image
 
-from ._utils import remap_preds, split_crops
+from ._utils import split_crops
 
 from doctr.vit_rollout import VITAttentionRollout
 

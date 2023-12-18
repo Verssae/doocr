@@ -11,7 +11,6 @@ from doctr.io.elements import Word
 
 from doctr.models import ocr_predictor
 from doctr.models.predictor import OCRPredictor
-from vit_rollout import VITAttentionRollout
 
 DET_ARCHS = [
     "db_resnet50",
@@ -61,7 +60,6 @@ def forward_image(predictor: OCRPredictor, image: np.ndarray, device: torch.devi
         out = predictor.det_predictor.model(processed_batches[0].to(device), return_model_output=True)
         seg_map = out["out_map"].to("cpu").numpy()
 
-
     return seg_map
 
 def word_to_image(word: Word, page: np.ndarray)-> np.ndarray:
@@ -71,20 +69,3 @@ def word_to_image(word: Word, page: np.ndarray)-> np.ndarray:
     image = page[y_min:y_max, x_min:x_max]
 
     return image
-
-def attention_rollout_images(predictor: OCRPredictor, img: np.ndarray, device: torch.device, head_fusion="mean", discard_ratio=0.9):
-    image = np.array([img])
-    # Resize image
-    
-    image =  predictor.reco_predictor.pre_processor(image)[0]
-    image = image.to(device)
-    # image = torch.from_numpy(image).to(device)
-    predictor.reco_predictor.model = predictor.reco_predictor.model.to(device)
-
-    mask = VITAttentionRollout(predictor.reco_predictor.model, head_fusion, discard_ratio)(image)[0]
-
-    return mask
-    
-
-    
-
