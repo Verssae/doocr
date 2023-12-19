@@ -1,9 +1,10 @@
 # DOOCR: Delivery Order OCR
-표 형태를 기반으로 한 물류 주문서(Delivery Order) 파일(PDF, PNG, JPEG, JPG)을 인식하여, 주문서의 내용을 추출하는 프로그램입니다. 텍스트 감지 모델과 텍스트 인식 모델으로 구성된 [DocTR](https://github.com/mindee/doctr)을 기반으로 개발되었습니다. 주된 목표는 텍스트 인식 모델로 ViTSTR(Vision Transformer for Scene Text Recognition by [ICDAR 2021](https://link.springer.com/chapter/10.1007/978-3-030-86549-8_21))을 사용하고, Attention Rollout을 통해 모델의 예측 결과에 대한 설명가능성을 제공하는 것입니다.
+표 형태를 기반으로 한 물류 주문서(Delivery Order) 파일(PDF, PNG, JPEG, JPG)을 인식하여, 주문서의 내용을 추출하는 프로그램입니다.
 
-이를 위해 [vit-explain](https://github.com/jacobgil/vit-explain)의 코드를 일부 수정하여 DocTR의 ViTSTR 및 RecognitionPredictor 관련 부분을 수정하여 사용하였습니다.
-
-GUI 기반의 사용성을 제공하기 위해 [streamlit](https://streamlit.io) 로컬 서버 기반의 웹 애플리케이션으로 개발되었습니다.
+- 텍스트 감지 모델과 텍스트 인식 모델으로 구성된 [DocTR](https://github.com/mindee/doctr)을 기반으로 개발되었습니다.
+- 주된 목표는 텍스트 인식 모델로 ViTSTR(Vision Transformer for Scene Text Recognition by [ICDAR 2021](https://link.springer.com/chapter/10.1007/978-3-030-86549-8_21))을 사용하고, Attention Rollout을 통해 모델의 예측 결과에 대한 설명가능성을 제공하는 것입니다.
+- 이를 위해 [vit-explain](https://github.com/jacobgil/vit-explain)의 코드를 일부 수정하여 DocTR의 ViTSTR 및 RecognitionPredictor 관련 부분을 수정하여 사용하였습니다.
+- GUI 기반의 사용성을 제공하기 위해 [streamlit](https://streamlit.io) 로컬 서버 기반의 웹 애플리케이션으로 개발되었습니다.
 
 ## 주요 기능
 - 텍스트 검출(Text Detection): DocTR에서 제공하는 db_resnet, mobilenet_v3, linknet 기반의 사전 훈련된 모델을 사용할 수 있습니다. Binarization Threshold를 조정하여 텍스트 검출의 성능을 조절할 수 있습니다.
