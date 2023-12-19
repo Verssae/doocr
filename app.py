@@ -164,7 +164,7 @@ def main(det_archs, reco_archs):
                 
                 for i, row in enumerate(exp):
                     image = row[2]
-                    image = cv2.resize(image, (image.shape[1] * 4, image.shape[0] * 4))
+                    image = cv2.resize(image, (image.shape[1], image.shape[0]))
                     mask = cv2.resize(row[3], (image.shape[1], image.shape[0]))
                     mask = mask = np.uint8(255 * mask)
                     heatmap = cv2.applyColorMap(mask, cv2.COLORMAP_RAINBOW)
@@ -172,10 +172,10 @@ def main(det_archs, reco_archs):
                     cam = heatmap + np.float32(image)
                     cam = cam / np.max(cam)
                     cam = np.uint8(255 * cam)
-                    bottom_columns[0].image(image, clamp=True)
-                    bottom_columns[0].markdown(f'- {row[0]}')
-                    bottom_columns[1].image(cam, clamp=True)
-                    bottom_columns[1].markdown(f'- {row[1]:.2f}')
+                    bottom_columns[0].image(image, clamp=True, use_column_width='always')
+                    bottom_columns[0].code(f'{row[0]}', language='text')
+                    bottom_columns[1].image(cam, clamp=True, use_column_width='always')
+                    bottom_columns[1].code(f'{row[1]:.2f}', language='text')
 
 if __name__ == "__main__":
     main(DET_ARCHS, RECO_ARCHS)
